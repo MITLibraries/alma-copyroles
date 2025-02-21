@@ -50,6 +50,16 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("SANDBOX_ALMA_API_KEY", "test_sandbox_api_key")
 
 
+def test_cli_with_missing_env_vars(cli_runner, monkeypatch):
+    monkeypatch.delenv("SANDBOX_ALMA_API_KEY")
+    result = cli_runner.invoke(
+        cli,
+        ["copy-roles", "-e", "sandbox", "sourceuser", "targetuser"],
+    )
+    assert result.exit_code == 1
+    assert "Missing required environment variables" in result.output
+
+
 def test_print_user_roles(roles):
     expected = (
         "status    role_type    scope\n"

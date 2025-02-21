@@ -1,15 +1,21 @@
-import os
-
 import click
 from requests.exceptions import HTTPError
 from tabulate import tabulate
 
 from copyroles.alma import AlmaClient
+from copyroles.config import Config
+
+# instantiate a Config object
+CONFIG = Config()
 
 
 @click.group()
 def cli() -> None:
     """CLI for CopyRoles."""
+    try:
+        CONFIG.check_required_env_vars()
+    except OSError as e:
+        raise click.ClickException(str(e)) from e
 
 
 @cli.command()
@@ -28,9 +34,11 @@ def copy_roles(
     environment: str,
 ) -> None:
     alma_api_keys = {}
-    alma_api_keys["prod"] = os.environ["PROD_ALMA_API_KEY"]
-    alma_api_keys["sandbox"] = os.environ["SANDBOX_ALMA_API_KEY"]
-    alma_client = AlmaClient(alma_api_keys[environment])
+    alma_api_keys["prod"] = CONFIG.prod_alma_api_key
+    alma_api_keys["sandbox"] = CONFIG.sandbox_alma_api_key
+    alma_client = AlmaClient(
+        alma_api_keys[environment], base_url=CONFIG.alma_api_endpoint
+    )
     job_summary = (
         f"Source: \033[1m{source_username.upper()}\033[0m - "
         f"\033[1m{alma_client.alma_environment.upper()}\033[0m\n"
@@ -88,10 +96,14 @@ def copy_user(username: str, source_env: str, target_env: str) -> None:
         raise click.UsageError(message)
     click.echo("copy user")
     alma_api_keys = {}
-    alma_api_keys["prod"] = os.environ["PROD_ALMA_API_KEY"]
-    alma_api_keys["sandbox"] = os.environ["SANDBOX_ALMA_API_KEY"]
-    source_alma_client = AlmaClient(alma_api_keys[source_env])
-    target_alma_client = AlmaClient(alma_api_keys[target_env])
+    alma_api_keys["prod"] = CONFIG.prod_alma_api_key
+    alma_api_keys["sandbox"] = CONFIG.sandbox_alma_api_key
+    source_alma_client = AlmaClient(
+        alma_api_keys[source_env], base_url=CONFIG.alma_api_endpoint
+    )
+    target_alma_client = AlmaClient(
+        alma_api_keys[target_env], base_url=CONFIG.alma_api_endpoint
+    )
     job_summary = (
         f"Source: \033[1m{username.upper()}\033[0m - "
         f"\033[1m{source_alma_client.alma_environment.upper()}\033[0m\n"

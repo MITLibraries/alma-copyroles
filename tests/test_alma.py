@@ -6,9 +6,16 @@ import requests_mock
 from copyroles.alma import AlmaClient
 
 
+@pytest.fixture
+def test_alma_client():
+    api_key = "test_api_key"
+    base_url = "https://example.com/"
+    return AlmaClient(api_key, base_url)
+
+
 def test_alma_client_initialization():
     api_key = "test_api_key"
-    base_url = "https://example.com/almaws/v1/"
+    base_url = "https://example.com/"
     client = AlmaClient(api_key, base_url)
 
     assert client.api_key == api_key
@@ -18,20 +25,8 @@ def test_alma_client_initialization():
     assert client.headers["Content-Type"] == "application/json"
 
 
-def test_alma_client_default_base_url():
-    api_key = "test_api_key"
-    client = AlmaClient(api_key)
-
-    assert client.api_key == api_key
-    assert client.base_url == "https://api-na.hosted.exlibrisgroup.com/almaws/v1/"
-    assert client.headers["Authorization"] == f"apikey {api_key}"
-    assert client.headers["Accept"] == "application/json"
-    assert client.headers["Content-Type"] == "application/json"
-
-
-def test_get_alma_user():
-    api_key = "test_api_key"
-    client = AlmaClient(api_key)
+def test_get_alma_user(test_alma_client):
+    client = test_alma_client
     primary_id = "kerb@mit.edu"
     user_data = {"primary_id": primary_id, "user_role": [{"role": "test"}]}
     with requests_mock.Mocker() as m:
@@ -40,9 +35,8 @@ def test_get_alma_user():
         assert response == user_data
 
 
-def test_update_alma_roles():
-    api_key = "test_api_key"
-    client = AlmaClient(api_key)
+def test_update_alma_roles(test_alma_client):
+    client = test_alma_client
     primary_id = "kerb@mit.edu"
     new_roles = [{"role": "test"}]
     user_to_update = {"primary_id": primary_id}
@@ -54,18 +48,16 @@ def test_update_alma_roles():
         assert m.last_request.json() == expected_payload
 
 
-def test_create_alma_user(user_record):
-    api_key = "test_api_key"
-    client = AlmaClient(api_key)
+def test_create_alma_user(user_record, test_alma_client):
+    client = test_alma_client
     with requests_mock.Mocker() as m:
         m.post(f"{client.base_url}users/")
         client.create_alma_user(user_record)
         assert m.last_request.json() == user_record
 
 
-def test_alma_environment():
-    api_key = "test_api_key"
-    client = AlmaClient(api_key)
+def test_alma_environment(test_alma_client):
+    client = test_alma_client
     environment_data = {"environment_type": "production"}
     with requests_mock.Mocker() as m:
         m.get(f"{client.base_url}conf/general", json=environment_data)
