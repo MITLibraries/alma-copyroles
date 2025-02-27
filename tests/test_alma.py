@@ -13,10 +13,10 @@ def test_alma_client():
     return AlmaClient(api_key, base_url)
 
 
-def test_alma_client_initialization():
+def test_alma_client_initialization(test_alma_client):
     api_key = "test_api_key"
     base_url = "https://example.com/"
-    client = AlmaClient(api_key, base_url)
+    client = test_alma_client
 
     assert client.api_key == api_key
     assert client.base_url == base_url

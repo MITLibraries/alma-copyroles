@@ -15,6 +15,14 @@ class Config:
             message = f"Missing required environment variables: {', '.join(missing_vars)}"
             raise OSError(message)
 
+    def get_alma_api_key(self, environment: str) -> str:
+        if environment == "sandbox":
+            return self.sandbox_alma_api_key
+        if environment == "prod":
+            return self.prod_alma_api_key
+        error_message = f"Alma environment '{environment}' not recognized."
+        raise ValueError(error_message)
+
     @property
     def alma_api_endpoint(self) -> str:
         return os.getenv(

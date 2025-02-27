@@ -33,11 +33,8 @@ def copy_roles(
     target_username: str,
     environment: str,
 ) -> None:
-    alma_api_keys = {}
-    alma_api_keys["prod"] = CONFIG.prod_alma_api_key
-    alma_api_keys["sandbox"] = CONFIG.sandbox_alma_api_key
     alma_client = AlmaClient(
-        alma_api_keys[environment], base_url=CONFIG.alma_api_endpoint
+        CONFIG.get_alma_api_key(environment), base_url=CONFIG.alma_api_endpoint
     )
     job_summary = (
         f"Source: \033[1m{source_username.upper()}\033[0m - "
@@ -95,14 +92,12 @@ def copy_user(username: str, source_env: str, target_env: str) -> None:
         message = "Cannot copy users from sandbox to prod environment."
         raise click.UsageError(message)
     click.echo("copy user")
-    alma_api_keys = {}
-    alma_api_keys["prod"] = CONFIG.prod_alma_api_key
-    alma_api_keys["sandbox"] = CONFIG.sandbox_alma_api_key
+
     source_alma_client = AlmaClient(
-        alma_api_keys[source_env], base_url=CONFIG.alma_api_endpoint
+        CONFIG.get_alma_api_key(source_env), base_url=CONFIG.alma_api_endpoint
     )
     target_alma_client = AlmaClient(
-        alma_api_keys[target_env], base_url=CONFIG.alma_api_endpoint
+        CONFIG.get_alma_api_key(target_env), base_url=CONFIG.alma_api_endpoint
     )
     job_summary = (
         f"Source: \033[1m{username.upper()}\033[0m - "

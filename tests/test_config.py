@@ -24,3 +24,21 @@ def test_check_required_env_vars(monkeypatch, config_instance):
     monkeypatch.delenv("SANDBOX_ALMA_API_KEY")
     with pytest.raises(OSError, match="Missing required environment variables:"):
         config_instance.check_required_env_vars()
+
+
+def test_get_alma_api_key(monkeypatch, config_instance):
+    monkeypatch.setenv("SANDBOX_ALMA_API_KEY", "test_sandbox_key")
+    monkeypatch.setenv("PROD_ALMA_API_KEY", "test_prod_key")
+
+    assert config_instance.get_alma_api_key("sandbox") == "test_sandbox_key"
+    assert config_instance.get_alma_api_key("prod") == "test_prod_key"
+
+
+def test_get_alma_api_key_invalid_env(monkeypatch, config_instance):
+    monkeypatch.setenv("SANDBOX_ALMA_API_KEY", "test_sandbox_key")
+    monkeypatch.setenv("PROD_ALMA_API_KEY", "test_prod_key")
+
+    with pytest.raises(
+        ValueError, match="Alma environment 'invalid_env' not recognized."
+    ):
+        config_instance.get_alma_api_key("invalid_env")
